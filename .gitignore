@@ -1,0 +1,30 @@
+# Binaries
+litepub
+cmd/litepub/litepub
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test artifacts
+*.test
+*.out
+coverage.html
+coverage.txt
+
+# Build cache
+/vendor/
+
+# golangci-lint cache
+.golangci-lint-cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

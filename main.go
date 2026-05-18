@@ -1,18 +1,19 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"io"
 	"log"
 	"net"
+
+	"litepub/internal/parser"
 )
 
 func main() {
-	fmt.Println("Strarting server")
+	fmt.Println("Starting server")
 
 	listener, err := net.Listen("tcp", ":8080")
 
-	// check for errors on listening
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -26,12 +27,21 @@ func main() {
 		}
 
 		go func(conn net.Conn) {
-
 			log.Println("Connection from", conn.RemoteAddr())
-			io.Copy(conn, conn)
-			conn.Close()
+			defer conn.Close()
+
+			scanner := bufio.NewScanner(conn)
+			for scanner.Scan() {
+				line := scanner.Text()
+				cmd, err := parser.ParseCommand(line)
+				if err != nil {
+					log.Println("parse error:", err)
+					continue
+				}
+				fmt.Println("got command:", cmd)
+			}
+
 			log.Println("Connection closed", conn.RemoteAddr())
 		}(conn)
-
 	}
 }
