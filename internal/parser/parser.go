@@ -13,6 +13,10 @@ type SubCommand struct {
 	Topic string
 }
 
+type UnsubCommand struct {
+	Sid int
+}
+
 type PubCommand struct {
 	Topic   string
 	Payload string
@@ -24,8 +28,9 @@ type Command interface {
 	CommandType()
 }
 
-func (s SubCommand) CommandType() {}
-func (s PubCommand) CommandType() {}
+func (s SubCommand) CommandType()   {}
+func (s PubCommand) CommandType()   {}
+func (s UnsubCommand) CommandType() {}
 
 func ParseCommand(r *bufio.Reader) (Command, error) {
 
@@ -54,6 +59,18 @@ func ParseCommand(r *bufio.Reader) (Command, error) {
 		}
 
 		return SubCommand{subid, words[1]}, nil
+	case "UNSUB":
+
+		if len(words) < 2 {
+			return nil, fmt.Errorf("bad input")
+		}
+
+		subid, err := strconv.Atoi(words[1])
+		if err != nil {
+			return nil, err
+		}
+
+		return UnsubCommand{subid}, nil
 	case "PUB":
 		if len(words) < 3 {
 			return nil, fmt.Errorf("bad input")

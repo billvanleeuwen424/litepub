@@ -51,6 +51,14 @@ internal/server/    # TCP listener, connection handling
 client/             # Go client library (pub/sub API)
 ```
 
+## Issue Tracking
+
+GitHub Issues is used to track upcoming work. Check open issues at the start of a session for context on what's planned — they inform direction but are not hard requirements:
+
+```bash
+gh issue list
+```
+
 ## Progress
 
 ### Completed

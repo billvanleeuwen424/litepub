@@ -31,6 +31,50 @@ func TestSubMissingTopic(t *testing.T) {
 	}
 }
 
+func TestUnSubMissingTopic(t *testing.T) {
+	cmd, err := ParseCommand(makeReader("UNSUB \n"))
+	if cmd != nil {
+		t.Errorf("expected nil command, got %v", cmd)
+	}
+	if err == nil {
+		t.Error("expected an error, got nil")
+	}
+}
+
+func TestUnSubMissingArgs(t *testing.T) {
+	cmd, err := ParseCommand(makeReader("UNSUB\n"))
+	if cmd != nil {
+		t.Errorf("expected nil command, got %v", cmd)
+	}
+	if err == nil {
+		t.Error("expected an error, got nil")
+	}
+}
+
+func TestUnSubInvalidSid(t *testing.T) {
+	cmd, err := ParseCommand(makeReader("UNSUB notanumber\n"))
+	if cmd != nil {
+		t.Errorf("expected nil command, got %v", cmd)
+	}
+	if err == nil {
+		t.Error("expected an error for non-numeric sid, got nil")
+	}
+}
+
+func TestUnSubHappyPath(t *testing.T) {
+	cmd, err := ParseCommand(makeReader("UNSUB 42\n"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	unsub, ok := cmd.(UnsubCommand)
+	if !ok {
+		t.Fatalf("expected UnsubCommand, got %T", cmd)
+	}
+	if unsub.Sid != 42 {
+		t.Errorf("got sid %d, want %d", unsub.Sid, 42)
+	}
+}
+
 func TestSubHappyPath(t *testing.T) {
 	cmd, err := ParseCommand(makeReader("SUB sports.scores 42\n"))
 	if err != nil {
