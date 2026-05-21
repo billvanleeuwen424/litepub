@@ -82,3 +82,11 @@ gh issue list
 - Text-based protocol chosen deliberately: debuggable with `nc`, loggable, tradeof is slightly more bytes on the wire vs binary
 - `sid` is client-assigned and scoped per-subscription (not a global client ID) — lets a single client route incoming `MSG` frames to the right local handler
 - Client library would own the sid→handler mapping and the read loop; application code just registers callbacks
+
+## Coverage (Integration Tests)
+
+`go build -cover` registers counter-flush as an `os.Exit` hook. SIGTERM and SIGINT both bypass that hook — the process dies without writing counter data, leaving `main.go` at 0% even though the binary was exercised. The fix is a signal handler in `main.go` that catches both signals, calls `runtime/coverage.WriteCountersDir(os.Getenv("GOCOVERDIR"))`, then calls `os.Exit(0)` (which runs the hook and writes the meta file too).
+
+`WriteCountersDir` is a documented no-op when the binary was not built with `-cover`, so the handler is safe to leave in production builds.
+
+The CI workflow sets `GOCOVERDIR` before running pytest; the subprocess inherits it automatically. `conftest.py` also passes `env=os.environ.copy()` explicitly for clarity, and calls `proc.wait()` after `proc.terminate()` to ensure the flush completes before `go tool covdata` runs.

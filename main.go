@@ -10,8 +10,16 @@ import (
 	"litepub/internal/parser"
 )
 
+
 func main() {
 	fmt.Println("Starting server")
+
+	// Flush coverage data and exit cleanly when signalled.
+	// go build -cover registers counter-flush as an os.Exit hook, but
+	// SIGTERM/SIGINT bypass that hook entirely. We catch both signals here
+	// so that integration-test suites that terminate the broker via
+	// proc.terminate() (SIGTERM) still get accurate coverage output.
+	go handleSignals()
 
 	listener, err := net.Listen("tcp", ":8080")
 
