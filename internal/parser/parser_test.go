@@ -122,6 +122,40 @@ func TestUnknownCommand(t *testing.T) {
 	}
 }
 
+func TestAckMissingArgs(t *testing.T) {
+	cmd, err := ParseCommand(makeReader("ACK\n"))
+	if cmd != nil {
+		t.Errorf("expected nil command, got %v", cmd)
+	}
+	if err == nil {
+		t.Error("expected an error, got nil")
+	}
+}
+
+func TestAckInvalidMsgId(t *testing.T) {
+	cmd, err := ParseCommand(makeReader("ACK notanumber\n"))
+	if cmd != nil {
+		t.Errorf("expected nil command, got %v", cmd)
+	}
+	if err == nil {
+		t.Error("expected an error for non-numeric msg-id, got nil")
+	}
+}
+
+func TestAckHappyPath(t *testing.T) {
+	cmd, err := ParseCommand(makeReader("ACK 7\n"))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	ack, ok := cmd.(AckCommand)
+	if !ok {
+		t.Fatalf("expected AckCommand, got %T", cmd)
+	}
+	if ack.MsgId != 7 {
+		t.Errorf("got msg-id %d, want %d", ack.MsgId, 7)
+	}
+}
+
 func TestPubMissingArgs(t *testing.T) {
 	cmd, err := ParseCommand(makeReader("PUB\n"))
 	if cmd != nil {
