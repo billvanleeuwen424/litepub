@@ -1,0 +1,11 @@
+#!/bin/sh
+# Prepend testing section before git's own comments
+TMPFILE=$(mktemp)
+cat > "$TMPFILE" <<'EOF'
+
+Testing:
+# (describe how this was tested)
+
+EOF
+cat "$1" >> "$TMPFILE"
+mv "$TMPFILE" "$1"

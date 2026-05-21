@@ -51,6 +51,14 @@ internal/server/    # TCP listener, connection handling
 client/             # Go client library (pub/sub API)
 ```
 
+## Git Hooks
+
+Commit hooks live in `.githooks/`. Activate them after cloning:
+
+```bash
+git config core.hooksPath .githooks
+```
+
 ## Issue Tracking
 
 GitHub Issues is used to track upcoming work. Check open issues at the start of a session for context on what's planned — they inform direction but are not hard requirements:
