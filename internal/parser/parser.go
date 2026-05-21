@@ -3,6 +3,7 @@ package parser
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
 )
@@ -12,17 +13,19 @@ type SubCommand struct {
 	Topic string
 }
 
-// type PubCommand struct {
-// 	Bytes   int
-// 	Topic   string
-// 	Payload string
-// }
+type PubCommand struct {
+	Topic   string
+	Payload string
+}
+
+const maxPayloadBytes = 1 << 20 // 1 MB
 
 type Command interface {
 	CommandType()
 }
 
 func (s SubCommand) CommandType() {}
+func (s PubCommand) CommandType() {}
 
 func ParseCommand(r *bufio.Reader) (Command, error) {
 
@@ -38,7 +41,8 @@ func ParseCommand(r *bufio.Reader) (Command, error) {
 		return nil, fmt.Errorf("bad input")
 	}
 
-	if words[0] == "SUB" {
+	switch words[0] {
+	case "SUB":
 
 		if len(words) < 3 {
 			return nil, fmt.Errorf("bad input")
@@ -50,6 +54,33 @@ func ParseCommand(r *bufio.Reader) (Command, error) {
 		}
 
 		return SubCommand{subid, words[1]}, nil
+	case "PUB":
+		if len(words) < 3 {
+			return nil, fmt.Errorf("bad input")
+		}
+
+		bytes, err := strconv.Atoi(words[2])
+		if err != nil {
+			return nil, err
+		}
+
+		if bytes < 0 || bytes > maxPayloadBytes {
+			return nil, fmt.Errorf("bad input")
+		}
+
+		buf := make([]byte, bytes)
+		_, err = io.ReadFull(r, buf)
+
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = r.Discard(2) // consume trailing \r\n after payload
+		if err != nil {
+			return nil, err
+		}
+
+		return PubCommand{words[1], string(buf)}, nil
 	}
 
 	return nil, fmt.Errorf("unknown command, not implemented: %s", words[0])
