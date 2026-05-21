@@ -1,10 +1,18 @@
 package parser
 
-import "testing"
+import (
+	"bufio"
+	"strings"
+	"testing"
+)
+
+func makeReader(s string) *bufio.Reader {
+	return bufio.NewReader(strings.NewReader(s))
+}
 
 // My first ever Go unit test :)
 func TestSubMissingArgs(t *testing.T) {
-	cmd, err := ParseCommand("SUB")
+	cmd, err := ParseCommand(makeReader("SUB\n"))
 	if cmd != nil {
 		t.Errorf("expected nil command, got %v", cmd)
 	}
@@ -14,7 +22,7 @@ func TestSubMissingArgs(t *testing.T) {
 }
 
 func TestSubMissingTopic(t *testing.T) {
-	cmd, err := ParseCommand("SUB ")
+	cmd, err := ParseCommand(makeReader("SUB \n"))
 	if cmd != nil {
 		t.Errorf("expected nil command, got %v", cmd)
 	}
@@ -24,7 +32,7 @@ func TestSubMissingTopic(t *testing.T) {
 }
 
 func TestSubHappyPath(t *testing.T) {
-	cmd, err := ParseCommand("SUB sports.scores 42")
+	cmd, err := ParseCommand(makeReader("SUB sports.scores 42\n"))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -41,7 +49,7 @@ func TestSubHappyPath(t *testing.T) {
 }
 
 func TestSubInvalidSid(t *testing.T) {
-	cmd, err := ParseCommand("SUB sports.scores notanumber")
+	cmd, err := ParseCommand(makeReader("SUB sports.scores notanumber\n"))
 	if cmd != nil {
 		t.Errorf("expected nil command, got %v", cmd)
 	}
@@ -51,7 +59,7 @@ func TestSubInvalidSid(t *testing.T) {
 }
 
 func TestEmptyInput(t *testing.T) {
-	cmd, err := ParseCommand("")
+	cmd, err := ParseCommand(makeReader(""))
 	if cmd != nil {
 		t.Errorf("expected nil command, got %v", cmd)
 	}
@@ -61,7 +69,7 @@ func TestEmptyInput(t *testing.T) {
 }
 
 func TestUnknownCommand(t *testing.T) {
-	cmd, err := ParseCommand("BLAH foo 1")
+	cmd, err := ParseCommand(makeReader("BLAH foo 1\n"))
 	if cmd != nil {
 		t.Errorf("expected nil command, got %v", cmd)
 	}

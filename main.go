@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"net"
 
@@ -30,18 +31,20 @@ func main() {
 			log.Println("Connection from", conn.RemoteAddr())
 			defer conn.Close()
 
-			scanner := bufio.NewScanner(conn)
-			for scanner.Scan() {
-				line := scanner.Text()
-				cmd, err := parser.ParseCommand(line)
+			reader := bufio.NewReader(conn)
+			for {
+				cmd, err := parser.ParseCommand(reader)
 				if err != nil {
-					log.Println("parse error:", err)
-					continue
+					if err == io.EOF {
+						log.Println("client disconnected", conn.RemoteAddr())
+					} else {
+						log.Println("parse error:", err)
+					}
+					return
 				}
 				fmt.Println("got command:", cmd)
 			}
 
-			log.Println("Connection closed", conn.RemoteAddr())
 		}(conn)
 	}
 }

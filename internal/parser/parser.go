@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"bufio"
 	"fmt"
 	"strconv"
 	"strings"
@@ -11,13 +12,25 @@ type SubCommand struct {
 	Topic string
 }
 
+// type PubCommand struct {
+// 	Bytes   int
+// 	Topic   string
+// 	Payload string
+// }
+
 type Command interface {
 	CommandType()
 }
 
 func (s SubCommand) CommandType() {}
 
-func ParseCommand(command string) (Command, error) {
+func ParseCommand(r *bufio.Reader) (Command, error) {
+
+	command, err := r.ReadString('\n')
+
+	if err != nil {
+		return nil, err
+	}
 
 	words := strings.Fields(command)
 
