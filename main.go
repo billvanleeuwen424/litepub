@@ -37,12 +37,21 @@ func main() {
 				if err != nil {
 					if err == io.EOF {
 						log.Println("client disconnected", conn.RemoteAddr())
-					} else {
-						log.Println("parse error:", err)
+						return
 					}
+					log.Println("parse error:", err)
+					if _, err = fmt.Fprintf(conn, "-ERR %s\r\n", err); err != nil {
+						log.Println("write error:", err)
+						return
+					}
+					continue
+				}
+				log.Println("got command:", cmd)
+				if _, err = fmt.Fprintf(conn, "+OK\r\n"); err != nil {
+					log.Println("write error:", err)
 					return
 				}
-				fmt.Println("got command:", cmd)
+
 			}
 
 		}(conn)
