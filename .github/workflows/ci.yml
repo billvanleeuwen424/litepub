@@ -27,10 +27,24 @@ jobs:
       - name: Test
         run: go test -race -coverprofile=coverage.out ./...
 
+      - name: Integration test
+        run: |
+          mkdir -p coverdata
+          go build -cover -o bin/litepub .
+          pip install -r tests/requirements.txt
+          export GOCOVERDIR=${{ github.workspace }}/coverdata
+          cd tests && pytest -v
+          cd ${{ github.workspace }}
+          echo "coverdata contents:"
+          ls -la coverdata/
+          go tool covdata textfmt -i=coverdata -o=coverage-integration.out
+          echo "integration coverage:"
+          cat coverage-integration.out
+
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:
-          files: coverage.out
+          files: coverage.out,coverage-integration.out
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Lint

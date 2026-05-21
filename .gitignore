@@ -1,5 +1,6 @@
 # Binaries
 litepub
+bin/
 cmd/litepub/litepub
 *.exe
 *.exe~
@@ -24,6 +25,14 @@ coverage.txt
 .vscode/
 *.swp
 *.swo
+
+# Coverage
+coverdata/
+
+# Python
+tests/__pycache__/
+tests/.pytest_cache/
+.venv/
 
 # OS
 .DS_Store
