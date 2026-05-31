@@ -18,9 +18,16 @@ go test -race ./...     # run tests with race detector
 go vet ./...            # static analysis
 ```
 
-Linting requires `golangci-lint`:
+Linting requires `staticcheck`:
 ```bash
-golangci-lint run       # lint all packages
+go install honnef.co/go/tools/cmd/staticcheck@2025.1
+staticcheck ./...
+```
+
+Integration tests (requires binary to be built first):
+```bash
+go build -o bin/litepub .
+cd tests && pytest -v
 ```
 
 ## Planned Architecture
@@ -70,18 +77,20 @@ gh issue list
 ## Progress
 
 ### Completed
-- `hello.go` — working TCP echo server; covers net.Listen, Accept loop, goroutine-per-connection, io.Copy, conn.Close. Tested with `nc localhost 8080`.
+- `hello.go` — working TCP echo server
+- `internal/parser/` — full protocol parser for `SUB`, `PUB`, `UNSUB`, `ACK`; 1 MB payload cap; unit tests for all branches
+- `main.go` — TCP server with `+OK`/`-ERR` responses after each command; write error handling; clean EOF disconnect
+- `signals.go` — SIGTERM/SIGINT handler for coverage flush; see `TODO(#19)` for planned replacement via graceful shutdown
+- `tests/` — Python integration tests covering all four commands; runs against a live binary in CI
 
 ### Where We Left Off
-- Next step: create `internal/proto/` and write the protocol parser
-- First command to parse: `SUB <topic> <sid>\r\n`
-- Test strategy: use raw `nc` to send commands manually — no client library needed yet
-- Client library (`client/`) is deferred until the broker is working
+- Next: broker fanout — subscription registry + routing `PubCommand` to matching subscribers
 
 ### Key Decisions Made
-- Text-based protocol chosen deliberately: debuggable with `nc`, loggable, tradeof is slightly more bytes on the wire vs binary
-- `sid` is client-assigned and scoped per-subscription (not a global client ID) — lets a single client route incoming `MSG` frames to the right local handler
-- Client library would own the sid→handler mapping and the read loop; application code just registers callbacks
+- Text-based protocol chosen deliberately: debuggable with `nc`, loggable; tradeoff is slightly more bytes on the wire vs binary
+- `sid` is client-assigned and scoped per-subscription — lets a single client route incoming `MSG` frames to the right local handler
+- `signals.go` split from `main.go` deliberately to keep signal/coverage concerns out of the main connection loop; delete when issue #19 is resolved
+- Client library (`client/`) deferred until broker fanout is working
 
 ## Coverage (Integration Tests)
 
