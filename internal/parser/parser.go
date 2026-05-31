@@ -32,10 +32,25 @@ type Command interface {
 	CommandType()
 }
 
-func (s SubCommand) CommandType()   {}
-func (s PubCommand) CommandType()   {}
+func (s SubCommand) CommandType() {}
+func (s SubCommand) String() string {
+	return fmt.Sprintf("SUB topic=%s sid=%d", s.Topic, s.Sid)
+}
+
+func (s PubCommand) CommandType() {}
+func (s PubCommand) String() string {
+	return fmt.Sprintf("PUB topic=%s payload=%s", s.Topic, s.Payload)
+}
+
 func (s UnsubCommand) CommandType() {}
-func (s AckCommand) CommandType()   {}
+func (s UnsubCommand) String() string {
+	return fmt.Sprintf("UNSUB sid=%d", s.Sid)
+}
+
+func (s AckCommand) CommandType() {}
+func (s AckCommand) String() string {
+	return fmt.Sprintf("ACK MsgId=%d", s.MsgId)
+}
 
 func ParseCommand(r *bufio.Reader) (Command, error) {
 
