@@ -11,23 +11,20 @@ Chosen depth feature: **at-least-once delivery with client ACKs and redelivery o
 ## Commands
 
 ```bash
-go build ./...          # build all packages
-go test ./...           # run all tests
-go test ./... -run TestName   # run a single test by name
-go test -race ./...     # run tests with race detector
-go vet ./...            # static analysis
+make check          # go vet + staticcheck + go test -race
+make test           # go test -race with unit coverage profile
+make integration    # build binary, run pytest against live binary, collect coverage
+make coverage       # run test + integration, print coverage summaries
+make clean          # remove binary, coverage files, coverdata dir
 ```
 
-Linting requires `staticcheck`:
+Manual equivalents (if not using make):
 ```bash
-go install honnef.co/go/tools/cmd/staticcheck@2025.1
-staticcheck ./...
-```
-
-Integration tests (requires binary to be built first):
-```bash
-go build -o bin/litepub .
-cd tests && pytest -v
+go build ./...                    # build all packages
+go test -race ./...               # run unit tests with race detector
+go test ./... -run TestName       # run a single test by name
+go vet ./...                      # static analysis
+staticcheck ./...                 # lint (requires: go install honnef.co/go/tools/cmd/staticcheck@2025.1)
 ```
 
 ## Planned Architecture

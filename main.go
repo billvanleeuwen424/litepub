@@ -10,6 +10,40 @@ import (
 	"litepub/internal/parser"
 )
 
+const okResponse = "+OK\r\n"
+
+func writeOK(conn net.Conn) error {
+	if _, err := io.WriteString(conn, okResponse); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func handleSubCommand(conn net.Conn, s parser.SubCommand) error {
+	log.Println("got SUB command:", s)
+
+	return writeOK(conn)
+}
+
+func handlePubCommand(conn net.Conn, s parser.PubCommand) error {
+	log.Println("got PUB command:", s)
+
+	return writeOK(conn)
+}
+
+func handleAckCommand(conn net.Conn, s parser.AckCommand) error {
+	log.Println("got ACK command:", s)
+
+	return writeOK(conn)
+}
+
+func handleUnsubCommand(conn net.Conn, s parser.UnsubCommand) error {
+	log.Println("got UNSUB command:", s)
+
+	return writeOK(conn)
+}
+
 func main() {
 	fmt.Println("Starting server")
 
@@ -54,20 +88,22 @@ func main() {
 					continue
 				}
 
-				// Goal for today
-				// fanout on reciept of message.
-				// the parser just parsed and returned us a struct containing the message
-				// we can get a SUB, PUB, ACK, or UNSUB
-				// Functions need to be called for each
+				switch c := cmd.(type) {
+				case parser.SubCommand:
+					err = handleSubCommand(conn, c)
+				case parser.PubCommand:
+					err = handlePubCommand(conn, c)
+				case parser.UnsubCommand:
+					err = handleUnsubCommand(conn, c)
+				case parser.AckCommand:
+					err = handleAckCommand(conn, c)
+				default:
+					log.Println("unhandled command type:", c)
+				}
 
-				log.Println("got command:", cmd)
-
-				switch cmd.(type) {
-				case parser.SubCommand, parser.PubCommand, parser.UnsubCommand, parser.AckCommand:
-					if _, err = fmt.Fprintf(conn, "+OK\r\n"); err != nil {
-						log.Println("write error:", err)
-						return
-					}
+				if err != nil {
+					log.Println(err)
+					return
 				}
 			}
 
