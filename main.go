@@ -10,7 +10,6 @@ import (
 	"litepub/internal/parser"
 )
 
-
 func main() {
 	fmt.Println("Starting server")
 
@@ -54,12 +53,22 @@ func main() {
 					}
 					continue
 				}
-				log.Println("got command:", cmd)
-				if _, err = fmt.Fprintf(conn, "+OK\r\n"); err != nil {
-					log.Println("write error:", err)
-					return
-				}
 
+				// Goal for today
+				// fanout on reciept of message.
+				// the parser just parsed and returned us a struct containing the message
+				// we can get a SUB, PUB, ACK, or UNSUB
+				// Functions need to be called for each
+
+				log.Println("got command:", cmd)
+
+				switch cmd.(type) {
+				case parser.SubCommand, parser.PubCommand, parser.UnsubCommand, parser.AckCommand:
+					if _, err = fmt.Fprintf(conn, "+OK\r\n"); err != nil {
+						log.Println("write error:", err)
+						return
+					}
+				}
 			}
 
 		}(conn)
